@@ -100,7 +100,7 @@ void setup() {
     fauxhue.addDevice(ID_PINK);
     fauxhue.addDevice(ID_WHITE);
 
-    fauxhue.onSetState([](unsigned char device_id, const char * device_name, fauxhue_state_t state) {
+    fauxhue.setStateCbHandler([](unsigned char device_id, const char * device_name, fauxhue_state_t state) {
         
         // Callback when a command from Alexa is received. 
         // Suported states so far --->
@@ -109,13 +109,25 @@ void setup() {
         //     hue: 0-65535, through the colorwheel from red to red
         //     sat (saturation): 0-254
         //     ct (color temperature): in mired, 153 - 500
+        //     colormode: "hs"=HSV, "ct"=Color Temperature
         
-        Serial.printf("[MAIN] Device #%d (%s)"          
-                        "\r\n\t [state] on: %s | bri: %3d | hue: %5d | sat: %3d | ct: %3d \r\n", 
-                        device_id, device_name, state.on ? "ON" : "OFF", state.bri, state.hue, state.sat, state.ct);
+        fauxhue_rgb_t color = fauxhue.getColor(device_id);
+        Serial.printf("[MAIN] Device #%d (%s)" 
+                        "\r\n\t on: %s "
+                        "\r\n\t bri: %d "
+                        "\r\n\t hue: %d "
+                        "\r\n\t sat: %d "
+                        "\r\n\t ct: %d "
+                        "\r\n\t colormode: %s \r\n"
+                        "\r\n\t RGB Color: Red %d | Green %d | Blue %d \r\n", 
+                        device_id, device_name, state.on ? "ON" : "OFF", state.bri, state.hue, state.sat, state.ct, state.colormode,  
+                        color.red, color.green, color.blue);
 
         // Checking for device_id is simpler if you are certain about the order they are loaded and it does not change.
         // Otherwise comparing the device_name is safer.
+
+        // NOTE: Color values are not utilized here. 
+        // Get RGB LEDs and use analogWrite() to change color of the LED
 
         if (strcmp(device_name, ID_YELLOW)==0) {
             digitalWrite(LED_YELLOW, state.on ? HIGH : LOW);
@@ -149,6 +161,9 @@ void loop() {
 
     // If your device state is changed by any other means (MQTT, physical button,...)
     // you can instruct the library to report the new state to Alexa on next request:
-    // fauxhue.setState(ID_YELLOW, true, 255);
+    // setState()         <-- Set all states 
+    // setStateBri()      <-- Set brightness state
+    // setStateHueSat()   <-- Set hue and saturation state
+    // setStateColTemp()  <-- Set color temperature state
 
 }

@@ -5,13 +5,13 @@
     #include <WiFi.h>
 #endif
 #include <ESPAsyncWebServer.h>
-#include "fauxmoESP.h"
+#include "fauxhue.h"
 
 // Rename the credentials.sample.h file to credentials.h and 
 // edit it according to your router configuration
 #include "credentials.h"
 
-fauxmoESP fauxmo;
+Fauxhue fauxhue;
 AsyncWebServer server(80);
 
 // -----------------------------------------------------------------------------
@@ -53,12 +53,12 @@ void serverSetup() {
 
     // These two callbacks are required for gen1 and gen3 compatibility
     server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-        if (fauxmo.process(request->client(), request->method() == HTTP_GET, request->url(), String((char *)data))) return;
+        if (fauxhue.process(request->client(), request->method() == HTTP_GET, request->url(), String((char *)data))) return;
         // Handle any other body request here...
     });
     server.onNotFound([](AsyncWebServerRequest *request) {
         String body = (request->hasParam("body", true)) ? request->getParam("body", true)->value() : String();
-        if (fauxmo.process(request->client(), request->method() == HTTP_GET, request->url(), body)) return;
+        if (fauxhue.process(request->client(), request->method() == HTTP_GET, request->url(), body)) return;
         // Handle not found request here...
     });
 
@@ -84,16 +84,16 @@ void setup() {
     // Web server
     serverSetup();
 
-    // Set fauxmoESP to not create an internal TCP server and redirect requests to the server on the defined port
+    // Set Fauxhue to not create an internal TCP server and redirect requests to the server on the defined port
     // The TCP port must be 80 for gen3 devices (default is 1901)
     // This has to be done before the call to enable()
-    fauxmo.createServer(false);
-    fauxmo.setPort(80); // This is required for gen3 devices
+    fauxhue.createServer(false);
+    fauxhue.setPort(80); // This is required for gen3 devices
 
     // You have to call enable(true) once you have a WiFi connection
     // You can enable or disable the library at any moment
     // Disabling it will prevent the devices from being discovered and switched
-    fauxmo.enable(true);
+    fauxhue.enable(true);
 
     // You can use different ways to invoke alexa to modify the devices state:
     // "Alexa, turn kitchen on" ("kitchen" is the name of the first device below)
@@ -101,18 +101,18 @@ void setup() {
     // "Alexa, set kitchen to fifty" (50 means 50% of brightness)
 
     // Add virtual devices
-    fauxmo.addDevice("kitchen");
-	fauxmo.addDevice("livingroom");
+    fauxhue.addDevice("kitchen");
+	fauxhue.addDevice("livingroom");
 
     // You can add more devices
-	//fauxmo.addDevice("light 3");
-    //fauxmo.addDevice("light 4");
-    //fauxmo.addDevice("light 5");
-    //fauxmo.addDevice("light 6");
-    //fauxmo.addDevice("light 7");
-    //fauxmo.addDevice("light 8");
+	//fauxhue.addDevice("light 3");
+    //fauxhue.addDevice("light 4");
+    //fauxhue.addDevice("light 5");
+    //fauxhue.addDevice("light 6");
+    //fauxhue.addDevice("light 7");
+    //fauxhue.addDevice("light 8");
 
-    fauxmo.onSetState([](unsigned char device_id, const char * device_name, fauxmo_state_t state) {
+    fauxhue.setStateCbHandler([](unsigned char device_id, const char * device_name, fauxhue_state_t state) {
         
         // Callback when a command from Alexa is received. 
         // Suported states so far --->
@@ -121,20 +121,26 @@ void setup() {
         //     hue: 0-65535, through the colorwheel from red to red
         //     sat (saturation): 0-254
         //     ct (color temperature): in mired, 153 - 500
+        //     colormode: "hs"=HSV, "ct"=Color Temperature
         
         // if (0 == device_id) digitalWrite(RELAY1_PIN, state.on);
         // if (1 == device_id) digitalWrite(RELAY2_PIN, state.on);
         // if (2 == device_id) analogWrite(LED1_PIN, state.bri);
         
+        fauxhue_rgb_t color = fauxhue.getColor(device_id);
         Serial.printf("[MAIN] Device #%d (%s)" 
                         "\r\n\t on: %s "
                         "\r\n\t bri: %d "
                         "\r\n\t hue: %d "
                         "\r\n\t sat: %d "
-                        "\r\n\t ct: %d \r\n", 
-                        device_id, device_name, state.on ? "ON" : "OFF", state.bri, state.hue, state.sat, state.ct);
+                        "\r\n\t ct: %d "
+                        "\r\n\t colormode: %s \r\n"
+                        "\r\n\t RGB Color: Red %d | Green %d | Blue %d \r\n", 
+                        device_id, device_name, state.on ? "ON" : "OFF", state.bri, state.hue, state.sat, state.ct, state.colormode,  
+                        color.red, color.green, color.blue);
 
         // For the example we are turning the same LED on and off regardless fo the device triggered or the value
+        // Also, color values are not utilized here. Use analogWrite() on a RGB LED to use color values. 
         digitalWrite(LED, !(state.on)); // we are nor-ing the state because our LED has inverse logic.
 
     });
@@ -143,9 +149,9 @@ void setup() {
 
 void loop() {
 
-    // fauxmoESP uses an async TCP server but a sync UDP server
+    // Fauxhue uses an async TCP server but a sync UDP server
     // Therefore, we have to manually poll for UDP packets
-    fauxmo.handle();
+    fauxhue.handle();
 
     // This is a sample code to output free heap every 5 seconds
     // This is a cheap way to detect memory leaks

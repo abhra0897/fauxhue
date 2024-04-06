@@ -615,6 +615,8 @@ unsigned char Fauxhue::addDevice(const char * device_name) {
 	device.state.bri = 0;
 	device.state.hue = 0;
 	device.state.sat = 0;
+	device.state.ct = 500;
+	strncpy(device.state.colormode, "hs", 3);
 
     // create the uniqueid
     String mac = WiFi.macAddress();
@@ -682,9 +684,14 @@ fauxhue_rgb_t Fauxhue::getColor(uint8_t id)
 {
 	if (id < _devices.size())
 		return _devices[id].color;
+	return (fauxhue_rgb_t){0, 0, 0};
 }
-char * Fauxhue::getColormode(uint8_t id, char * buffer, size_t len)
+char * Fauxhue::getColormode(uint8_t id, char colormode[3])
 {
+	if (id < _devices.size())
+		strncpy(colormode, _devices[id].state.colormode, 3);
+	
+	return colormode;
 
 }
 

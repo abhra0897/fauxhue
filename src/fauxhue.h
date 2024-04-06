@@ -113,10 +113,10 @@ class Fauxhue {
         char * getDeviceName(uint8_t id, char * buffer, size_t len);
         int getDeviceId(const char * device_name);
         void setDeviceUniqueId(uint8_t id, const char *uniqueid);
-        void onSetState(TSetStateCallback fn) { _setCallback = fn; }
+        void setStateCbHandler(TSetStateCallback fn) { _setCallback = fn; }
 
         fauxhue_rgb_t getColor(uint8_t id);
-        char * getColormode(uint8_t id, char * buffer, size_t len);
+        char * getColormode(uint8_t id, char colormode[3]);
 
         bool setState(uint8_t id, fauxhue_state_t state);
         bool setState(const char * device_name, fauxhue_state_t state);

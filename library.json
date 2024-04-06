@@ -1,0 +1,39 @@
+{
+    "name": "fauxhue",
+    "keywords": "philips,hue,fauxhue,fauxmo,esp8266,esp32,RaspberryPiPicoW,alexa,amazon,echo,dot",
+    "description": "Amazon Alexa support for ESP8266, ESP32 and Raspberry Pi Pico W (Amazon Echo & Dot)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/abhra0897/fauxhue"
+    },
+    "version": "1.0",
+    "license": "MIT",
+    "exclude": "tests",
+    "frameworks": "arduino",
+    "platforms": ["espressif8266", "espressif32", "rp2040"],
+    "authors":[
+        {
+            "name": "Avra Mitra",
+            "url": "http://github.com/abhra0897",
+            "maintainer": true
+        }
+    ],
+    "dependencies": [ 
+        {
+            "name": "ESPAsyncTCP",
+            "version": ">=1.2.0",
+            "platforms": "espressif8266"
+        },
+        {
+            "name": "AsyncTCP",
+            "version": ">=1.0.1",
+            "platforms": "espressif32"
+        },
+        {
+            "name": "AsyncTCP_RP2040W",
+            "version": ">=1.1.0",
+            "platforms": "rp2040"
+        }
+    ],
+    "headers": "fauxhue.h"
+}

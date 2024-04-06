@@ -1,4 +1,4 @@
-# FauxmoESP
+# Fauxhue
 ***Alexa support for ESP8266, ESP32, Raspberry Pi Pico W***
 
 This is a modified version of [FauxmoESP library by vintlabs](https://github.com/vintlabs/fauxmoESP). This version supports color control using hue, saturation, and color temperature.
